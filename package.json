@@ -7,6 +7,7 @@
   "dependencies": {
     "bcrypt-nodejs": "0.0.3",
     "ejs": "2.3.4",
+    "express-formidable": "^1.0.0",
     "grunt": "1.0.1",
     "grunt-contrib-clean": "1.0.0",
     "grunt-contrib-coffee": "1.0.0",
@@ -20,6 +21,8 @@
     "grunt-sails-linker": "~0.10.1",
     "grunt-sync": "0.5.2",
     "include-all": "^1.0.0",
+    "moment": "^2.20.1",
+    "momentjs": "^2.0.0",
     "nodemailer": "^0.7.1",
     "rc": "1.0.1",
     "sails": "~0.12.13",
@@ -40,6 +43,8 @@
   "devDependencies": {
     "eslint": "^4.7.2",
     "eslint-config-rallycoding": "^3.2.0",
-    "eslint-plugin-react": "^7.4.0"
+    "eslint-plugin-react": "^7.4.0",
+    "mkdirp": "^0.5.1",
+    "shortid": "^2.2.8"
   }
 }

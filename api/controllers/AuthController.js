@@ -26,6 +26,7 @@ module.exports = {
 					if (utilisateurs.code == "") {
 						return res.json({
 							utilisateurs: utilisateurs.id,
+							pdp: utilisateurs.photoUtilisateur,
 							message:"OK",
 							token: jwToken.issue({ message: "good" })
 						}); 
@@ -64,7 +65,13 @@ module.exports = {
 						token: jwToken.issue({ message: "OK" })
 					});
 				});
-			} else {
+			} 
+
+else if(user.code == '') {
+return res.json({ message: "Votre compte est déjà activé" });
+
+}
+			else {
 				return res.json({ message: "Votre code est incorecte" });
 			}
 		});

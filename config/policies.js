@@ -29,5 +29,14 @@ module.exports.policies = {
   },
     'InstitutionsController': {
     '*': true // We dont need authorization here, allowing public access
+  },
+   'EventController': {
+    '*': true // We dont need authorization here, allowing public access
+  },
+   'UserController': {
+    '*': true // We dont need authorization here, allowing public access
+  },
+    'TagsController': {
+    '*': true // We dont need authorization here, allowing public access
   }
 };

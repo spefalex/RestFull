@@ -126,7 +126,8 @@ module.exports = {
             }
 
 
-            var code = randomString(32, "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+            var code = Math.floor(1000 + Math.random() * 9000);
+            console.log(code);
 
             institution.code = code;
             institution.save();
@@ -181,7 +182,7 @@ module.exports = {
     id = req.param("id"); // identificateur institutions Obect Id
     profilsRequis = req.param("profilsRequis"),
     idUtilisateurSauvegarder = req.param("idUtilisateurSauvegarder"),
-
+domaine = req.param('domaine'),
     idUtilisateurPostuler = req.param("idUtilisateurPostuler");
     cv = req.param("cv");
     lm = req.param("lm");
@@ -199,7 +200,7 @@ module.exports = {
       }
       
       var name = institution.nom;
-      var domaine = institution.domaine;
+      var logo = institution.logo;
 
      
 
@@ -211,6 +212,7 @@ module.exports = {
         statusEmploi: "TRUE",
         titreEmploi: titreEmploi,
         description:description,
+        logo:logo,
         typeContrat: typeContrat,
         profilsRequis: profilsRequis,
         domaine: domaine,
@@ -658,10 +660,10 @@ results[i].save();
 
     let
 
-      idInstitution = req.param("idInstitution"); // identificateur Object ID
+    idInstitution = req.param("idInstitution"); // identificateur Object ID
     Emploies.find({
       idInstitution: idInstitution,
-      status: "TRUE"
+      statusEmploi: "TRUE"
     }).exec(function(err, data) {
       if (err) {
         return res.json({
@@ -669,7 +671,7 @@ results[i].save();
         });
       }
 
-
+console.log(data);
 
       res.json(data);
     });

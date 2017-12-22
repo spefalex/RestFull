@@ -1,5 +1,7 @@
 const mailer = require("nodemailer");
 const twilio = require("twilio");
+const fs = require ("fs");
+var path = require('path');
 const smtpTransport = mailer.createTransport("SMTP", {
   service: "Gmail",
   auth   : {
@@ -69,10 +71,12 @@ module.exports = {
             message: "Adresse e-maiL déjà éxiste"
           });
         } else if (verifMail == 0 && verifPhone == 1) {
+          res.header("Access-Control-Allow-Origin", "*");
           res.json({
             message: "numero mobile déjà existé"
           });
         } else if (verifMail == 1 && verifPhone == 1) {
+          res.header("Access-Control-Allow-Origin", "*");
           res.json({
             message: "adresseMail et numero Mobile déjà éxisté"
           });
@@ -83,7 +87,7 @@ module.exports = {
             anneNaissance,
             age,
             sexe,
-            photoUtilisateur: [{photoUtilisateur}],
+            photoUtilisateur: photoUtilisateur,
             numeroMobile, 
             adresseMail,
             motDePasse,
@@ -97,6 +101,14 @@ module.exports = {
             informationEmploie: [{
               nomSociete,
               poste
+
+            }],
+
+            Filtre: [{
+              rencontre:false,
+              emploies:true,
+              evenements:false,
+              formation:false
 
             }],
 
@@ -190,7 +202,6 @@ module.exports = {
             if (err) {
               return res.serverError(err);
             }
-               console.log(motDePasse);
             function randomString(length, chars) {
               let result = "";
               for (let i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
@@ -198,7 +209,9 @@ module.exports = {
             }
 
 
-            const code = randomString(32, "012345678abcdeRWXYZ");
+           
+            var code = Math.floor(1000 + Math.random() * 9000);
+            console.log(code);
 
             utilisateur.code = code;
             utilisateur.save();
@@ -221,8 +234,10 @@ module.exports = {
                 });
               } else {
                 console.log("Mail envoyé avec succès!");
+                res.header("Access-Control-Allow-Origin", "*");
                 res.json({
-                  message: "email de confirmation"
+                  message: "email de confirmation",
+                  idUtilisateur: utilisateur.id
                 });
               }
               smtpTransport.close();
@@ -252,6 +267,33 @@ res.json({ message: 'OK', token: jwToken.issue({id: _utilisateur.id})});
       }
     });
   },
+  
+  findTag(req, res) {
+    Tags.find().exec((err, tags) => {
+      if (err) {
+        res.send(400);
+      } else {
+        res.header("Access-Control-Allow-Origin", "*");
+        res.json(
+          tags
+        );
+      }
+    });
+  },
+
+
+  findUSER(req, res) {
+    Utilisateurs.find({select:['Filtre.rencontre']}).exec((err, user) => {
+      if (err) {
+        res.send(400);
+      } else {
+        res.header("Access-Control-Allow-Origin", "*");
+        res.json(
+         user
+        );
+      }
+    });
+  },
 
  lireEmploiMatcher(req, res) {
 
@@ -268,6 +310,24 @@ res.json({ message: 'OK', token: jwToken.issue({id: _utilisateur.id})});
         );
       }
     });
+  },
+
+
+insertTest: function (req,res) {
+
+//console.log(req.file('avatar'))
+
+req.file('avatar').upload({
+  dirname:"/var/www/html/IMAGES"
+},function (err, uploadedFiles) {
+  if (err) return res.negotiate(err);
+console.log(uploadedFiles);
+console.log(uploadedFiles[0].fd);
+
+res.json(uploadedFiles[0].fd);
+});
+
+
   },
 
    lireEvenementsMatcher(req, res) {
@@ -328,7 +388,7 @@ res.json({ message: 'OK', token: jwToken.issue({id: _utilisateur.id})});
    lireEmploiSauvegarder(req, res) {
 
    const id = req.param("idUtilisateurs");
-    Emploies.find({"sauvegardeEmploie.idUtilisateurSauvegarder":id}).exec((err, emploie) => {
+    Emploies.find({"sauvegardeEmploi.idUtilisateurSauvegarder":id}).exec((err, emploie) => {
       if (err) {
         res.send(400);
       } else {
@@ -396,6 +456,7 @@ res.json({ message: 'OK', token: jwToken.issue({id: _utilisateur.id})});
       }
     });
   },
+
 AcceuilsUtilisateur(req, res) {
     const id = req.param("id");
 
@@ -412,18 +473,149 @@ AcceuilsUtilisateur(req, res) {
 
       const tags = utilisateur.centreInteret;
       const localisation = utilisateur.localisation;
-      console.log(tags.length);
+      console.log(tags);
+      console.log(utilisateur.nomUtilisateur);
 
-        Evenements.find({
-          tags: tags
-        }).exec((err, evenement) => {
+    Emploies.find({
+          tagsEmploi: tags
+        }).exec((err, emploies) => {
+
+
           res.json({
-            evenement
-          });
+            emploies:emploies
+          }
+          
+          );
         });
       
     });
   },
+
+  
+FiltreAcceuil(req,res){
+
+    const id = req.param("id");
+Utilisateurs.findOne({
+  id:id
+}).exec(function (err, utilisaka){
+  if (err) {
+    return res.serverError(err);
+  }
+  if (!utilisaka) {
+    return res.notFound('Could not find Finn, sorry.');
+  }
+
+const rencontre= utilisaka.Filtre[0].rencontre;
+const emploies= utilisaka.Filtre[0].emploies;
+const evenements= utilisaka.Filtre[0].evenements;
+const formation= utilisaka.Filtre[0].formation;
+const tags = utilisaka.centreInteret;
+
+console.log(tags)
+
+if(rencontre==false && emploies ==true && evenements== false && formation ==false) 
+
+
+{
+
+  console.log("emploies rery")
+} 
+
+
+else if(rencontre==false && emploies ==false && evenements== true && formation ==false) {
+
+  console.log("evenements rery")
+}
+
+else if(rencontre==false && emploies ==false && evenements== false && formation ==true) {
+
+  console.log("formations rery")
+}
+
+else if(rencontre==true && emploies ==false && evenements== false && formation ==false) {
+
+  console.log("rencontre rery")
+}
+
+else if(rencontre==true && emploies ==true && evenements== false && formation ==false) {
+
+  console.log("rencontre feat emploies")
+}
+
+
+else if(rencontre==true && emploies ==false && evenements== true && formation ==false) {
+
+  console.log("rencontre feat evenements")
+}
+
+else if(rencontre==true && emploies ==false && evenements== false && formation ==true) {
+
+  console.log("rencontre feat formation")
+}
+
+
+else if(rencontre==false && emploies ==true && evenements== true && formation ==false) {
+
+  console.log("emploies feat evenements")
+}
+
+else if(rencontre==false && emploies ==true && evenements== false && formation ==true) {
+
+  console.log("emploies feat formation")
+}
+
+
+else if(rencontre==false && emploies ==false && evenements== true && formation ==true) {
+
+  console.log("formation feat evenemnts")
+}
+
+else if(rencontre==false && emploies ==true && evenements== false && formation ==true) {
+
+  console.log("formation feat emploies")
+}
+
+
+else if(rencontre==true && emploies ==true && evenements== true && formation ==false) {
+
+  console.log("rencontre feat emploies feat evenements")
+}
+
+else if(rencontre==true && emploies ==false && evenements== true && formation ==true) {
+
+  console.log("rencontre feat evenements feat formation")
+}
+
+else if(rencontre==true && emploies ==true && evenements== false && formation ==true) {
+
+  console.log("rencontre feat emploies feat formation")
+}
+
+else if(emploies==true && rencontre ==true && evenements== true && formation ==true) {
+
+  console.log("read all")
+}
+
+else if(emploies==false && rencontre ==false && evenements== false && formation ==false) {
+
+  console.log("false all")
+}
+
+else if(formation==true && emploies ==true && evenements== true && rencontre ==false) {
+
+  console.log("formation feat emplois feat evenements")
+}
+
+else if(emploies==true && formation ==true && evenements== true && rencontre ==false) {
+
+  console.log("emploes feat formation evenements")
+}
+  return res.json(utilisaka);
+});
+  },
+
+
+
    InformationUtilisateur(req, res) {
     const id = req.param("id");
 
@@ -544,7 +736,7 @@ utilisateur.save(function (err) {  });
      
      
 
-      console.log(emploies.titreEmploie);
+      console.log(emploies.titreEmploi);
 
      emploies.sauvegardeEmploi.push({idUtilisateurSauvegarder:idUtilisateur});
      emploies.save();
