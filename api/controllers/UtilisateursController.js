@@ -2,6 +2,15 @@ const mailer = require("nodemailer");
 const twilio = require("twilio");
 const fs = require ("fs");
 var path = require('path');
+var express = require("express");
+var app = express();
+var server = require("http").Server(app);
+
+var server= app.listen(3333);
+var io = require('socket.io').listen(server);
+
+//var io = require('socket.io-client')('http://192.168.0.96:1337');
+
 const smtpTransport = mailer.createTransport("SMTP", {
   service: "Gmail",
   auth   : {
@@ -9,6 +18,10 @@ const smtpTransport = mailer.createTransport("SMTP", {
     pass: "keymada1234"
   }
 });
+
+var express = require("express");
+var app = express();
+var server = require("http").Server(app);
 
 module.exports = {
   /**
@@ -119,76 +132,35 @@ module.exports = {
 
 
             }],
-            evenementMatcher: [{
-              idEvenementMatcher
+            evenementMatcher: [],
 
-
-            }],
-
-             evenementSauvegarder: [{
-              idEvenementSauvegarder
-
-
-            }],
+             evenementSauvegarder: [],
             
 
 
-             evenementIgnorer: [{
-              idEvenementIgnorer
+             evenementIgnorer: [],
 
-
-            }],
-
-            institutionSuivi: [{
-              idInstitutionSuivi: idInstitutionSuivi
-            }],
+            institutionSuivi: [],
 
            
 
-            formationSauvegarder: [{
-              idFormationSauvegarder
+            formationSauvegarder: [],
 
-            }],
+            formationIgnorer: [],
+            formationParticiper : [],
 
-            formationIgnorer: [{
-              idFormationIgnorer
+            emploiMatcher: [],
 
-            }],
-
-            emploiMatcher: [{
-              idEmploiMatcher
+            emploiSauvegarder: [],
 
 
-            }],
+            emploiIgnorer: [],
 
-            emploiSauvegarder: [{
-              idEmploiSauvegarder
+             idUtilisateurIntersser: [],
 
+            utilisateurMatcher: [],
 
-            }],
-
-
-            emploiIgnorer: [{
-              idEmploiIgnorer
-
-
-            }],
-
-             idUtilisateurIntersser: [{
-              idUtilisateurIntersser
-
-
-            }],
-
-            utilisateurMatcher: [{
-              idUtilisateurMatcher
-            }],
-
-            utilisateurBloquer: [{
-              idUtilisateurBloquer
-
-
-            }],
+            utilisateurBloquer: [],
             cv: [{
               cv
 
@@ -311,7 +283,62 @@ res.json({ message: 'OK', token: jwToken.issue({id: _utilisateur.id})});
       }
     });
   },
+ 
+ lireUtilisateursInteresser(req, res) {
 
+   const id = req.param("idUtilisateurs");
+    Utilisateurs.findOne({id:id}).exec((err, utilisateur) => {
+      if (err) {
+        res.send(400);
+      } else {
+        res.header("Access-Control-Allow-Origin", "*");
+
+        var idFind= utilisateur.idUtilisateurIntersser;
+        console.log(idFind)
+        
+      Utilisateurs.find({id:idFind}).exec(function (err, utilisaka){
+  if (err) {
+    return res.serverError(err);
+  }
+  sails.log('Wow, there are %d users named Finn.  Check it out:', utilisaka.length, utilisaka);
+  return res.json(utilisaka);
+
+});
+
+
+
+
+      }
+    });
+  },
+
+   lireContact(req, res) {
+
+   const id = req.param("idUtilisateurs");
+    Utilisateurs.findOne({id:id}).exec((err, utilisateur) => {
+      if (err) {
+        res.send(400);
+      } else {
+        res.header("Access-Control-Allow-Origin", "*");
+
+        var idFind= utilisateur.utilisateurMatcher;
+        console.log(idFind)
+        
+      Utilisateurs.find({id:idFind}).exec(function (err, utilisaka){
+  if (err) {
+    return res.serverError(err);
+  }
+  sails.log('Wow, there are %d users named Finn.  Check it out:', utilisaka.length, utilisaka);
+  return res.json(utilisaka);
+
+});
+
+
+
+
+      }
+    });
+  },
 
 insertTest: function (req,res) {
 
@@ -394,7 +421,7 @@ res.json(uploadedFiles[0].fd);
       } else {
         res.header("Access-Control-Allow-Origin", "*");
 
-        console.log(emploie.length)
+        console.log(emploie.sa)
         res.json(
           emploie
         );
@@ -435,7 +462,10 @@ res.json(uploadedFiles[0].fd);
 
       const tags = utilisateur.centreInteret;
       const localisation = utilisateur.localisation;
-      console.log(tags.length);
+
+      const ignorer = utilisateur.emploiIgnorer;
+
+      console.log(ignorer);
 
       if (tags.length == 0) {
         Evenements.find({
@@ -449,6 +479,8 @@ res.json(uploadedFiles[0].fd);
         Emploies.find({
           tags
         }).exec((err, results) => {
+
+          if(results.length == 0) { res.json({message:'accune offre emploie correspond à votre centre interet '})}
           res.json({
             results
           });
@@ -457,7 +489,122 @@ res.json(uploadedFiles[0].fd);
     });
   },
 
+ FiltreEmploie(req, res) {
+    const id = req.param("id");
+  const typeContrat = req.param('typeContrat').replace(/\s/g, "").split(",");
+
+   
+   const centreInteret = req.param("centreInteret").replace(/\s/g, "").split(",");
+  
+ Utilisateurs.findOne({
+      id
+    }).exec((err, utilisateur) => {
+      if (err) {
+        return res.serverError(err);
+      }
+      if (!utilisateur) {
+        return res.notFound("Could not find Finn, sorry.");
+      }
+
+    
+      const ignorer = utilisateur.emploiIgnorer;
+      const sauvegarder = utilisateur.emploiSauvegarder;
+ 
+      const ignorerVrai = ignorer.concat(sauvegarder);
+     
+      console.log(ignorerVrai)
+      console.log(utilisateur.prenomUtilisateur)
+      console.log(typeContrat)
+       console.log(centreInteret)
+    
+
+    Emploies.find({
+          
+          id:{'!':ignorerVrai},
+          or : [
+
+         {tagsEmploi: centreInteret}, 
+
+          {typeContrat:typeContrat}
+        
+
+
+         ]
+        
+        }).exec((err, emploies) => {
+
+if(emploies.length == 0) { res.json({message:'accune offres correspond à votre critére de recherche '})} 
+        
+else {
+          res.json({
+            emploies:emploies
+          }
+          
+          );
+           }
+          
+        });
+      
+    });
+  },
+
+
+
 AcceuilsUtilisateur(req, res) {
+    const id = req.param("id");
+
+
+    Utilisateurs.findOne({
+      id
+    }).exec((err, utilisateur) => {
+      if (err) {
+        return res.serverError(err);
+      }
+      if (!utilisateur) {
+         res.header("Access-Control-Allow-Origin", "*");
+        return res.notFound("Could not find Finn, sorry.");
+      }
+
+      const tags = utilisateur.centreInteret;
+      const localisation = utilisateur.localisation;
+      const ignorer = utilisateur.emploiIgnorer;
+      const sauvegarder = utilisateur.emploiSauvegarder;
+      const matcher=utilisateur.emploiMatcher;
+
+      const ignorerVrai = ignorer.concat(sauvegarder,matcher);
+      console.log(tags);
+      console.log(matcher);
+
+      console.log(ignorerVrai)
+      
+    
+      console.log(sauvegarder)
+
+    Emploies.find({
+          tagsEmploi: tags,
+          id:{'!':ignorerVrai}
+        }).exec((err, emploies) => {
+
+if(emploies.length == 0) {
+ res.header("Access-Control-Allow-Origin", "*");
+ res.json({message:'accune offre emploie correspond à votre centre interet '})}
+        
+else {
+
+   res.header("Access-Control-Allow-Origin", "*");
+          res.json({
+            emploies:emploies
+          }
+          
+          );
+          }
+        });
+      
+    });
+  },
+
+
+AcceuilsEvenements(req, res) {
     const id = req.param("id");
 
 
@@ -474,24 +621,149 @@ AcceuilsUtilisateur(req, res) {
       const tags = utilisateur.centreInteret;
       const localisation = utilisateur.localisation;
       console.log(tags);
+      const ignorer = utilisateur.evenementIgnorer;
+      const matcher= utilisateur.evenementMatcher;
+      const sauvegarder = utilisateur.evenementSauvegarder;
+
+      const ignorerVrai = ignorer.concat(matcher,sauvegarder);
+      console.log(ignorerVrai);
       console.log(utilisateur.nomUtilisateur);
 
-    Emploies.find({
-          tagsEmploi: tags
-        }).exec((err, emploies) => {
+    Evenements.find({
+          tagsEvenements: tags,
+          id:{'!':ignorerVrai}
 
+        }).exec((err, events) => {
 
+if(events.length == 0) { res.json({message:'accune Evenements correspond à votre centre interet '})} 
+
+  else {
           res.json({
-            emploies:emploies
+            events:events
           }
           
           );
+          }
         });
       
     });
   },
 
+
+  AcceuilsFormations(req, res) {
+    const id = req.param("id");
+
+
+    Utilisateurs.findOne({
+      id
+    }).exec((err, utilisateur) => {
+      if (err) {
+        return res.serverError(err);
+      }
+      if (!utilisateur) {
+        return res.notFound("Could not find Finn, sorry.");
+      }
+
+      const tags = utilisateur.centreInteret;
+      const formationSauvegarder = utilisateur.formationSauvegarder;
+      const formationParticiper = utilisateur.formationParticiper;
+      console.log(tags);
+      const ignorer = utilisateur.formationIgnorer;
+
+      const ignorerVrai = ignorer.concat(formationSauvegarder,formationParticiper);
+      console.log(ignorerVrai);
+      console.log(utilisateur.nomUtilisateur);
+
+    Formations.find({
+          tagsFormation: tags,
+          id:{'!':ignorerVrai}
+
+        }).exec((err, formations) => {
+
+if(formations.length == 0) { res.json({message:'accune formations correspond à votre centre interet '})} 
+
+  else {
+          res.json({
+            formations:formations
+          }
+          
+          );
+          }
+        });
+      
+    });
+  },
+
+
+
+
+   AcceuilsRencontre(req, res) {
+    const id = req.param("id");
+
+
+    Utilisateurs.findOne({
+      id:id
+    }).exec((err, utilisateur) => {
+      if (err) {
+        return res.serverError(err);
+      }
+      if (!utilisateur) {
+        return res.notFound("Could not find Finn, sorry.");
+      }
+
+      const tags = utilisateur.centreInteret;
+      const localisation = utilisateur.localisation;
+      const typeRencontre = utilisateur.typeRencontre;
+
+      console.log(tags);
+      console.log(id)
+      console.log(localisation);
+      console.log(typeRencontre)
+      const ignorer = utilisateur.utilisateurBloquer;
+      const interese = utilisateur.idUtilisateurIntersser;
+      const matcher= utilisateur.utilisateurMatcher;
+
+      const ignorerVrai=ignorer.concat(matcher);
+      console.log(ignorerVrai);
+      console.log(utilisateur.nomUtilisateur);
+
+
+
+    Utilisateurs.find({
+       
+       id:{'!':ignorerVrai},
+
+       or : [
+
+         {centreInteret: tags}, 
+
+          {localisation:localisation},
+         { typeRencontre:typeRencontre}
+
+
+         ]
+         
+
+          
+
+        }).exec((err, user) => {
+
+if(user.length == 0) { res.json({message:'accune personne correspond à votre centre interet '})} 
+
   
+
+  else {
+          res.json({
+            user:user
+          }
+          
+          );
+          }
+        });
+      
+    });
+  },
+
 FiltreAcceuil(req,res){
 
     const id = req.param("id");
@@ -518,97 +790,115 @@ if(rencontre==false && emploies ==true && evenements== false && formation ==fals
 
 {
 
-  console.log("emploies rery")
+  console.log("emploies rery");
+ return res.json({message:"emploies rery"});
 } 
 
 
 else if(rencontre==false && emploies ==false && evenements== true && formation ==false) {
 
   console.log("evenements rery")
+  return res.json({message:"evenements rery"});
 }
 
 else if(rencontre==false && emploies ==false && evenements== false && formation ==true) {
 
   console.log("formations rery")
+    return res.json({message:"formations rery"});
 }
 
 else if(rencontre==true && emploies ==false && evenements== false && formation ==false) {
 
   console.log("rencontre rery")
+    return res.json({message:"rencontre rery"});
 }
 
 else if(rencontre==true && emploies ==true && evenements== false && formation ==false) {
 
   console.log("rencontre feat emploies")
+    return res.json({message:"rencontre feat emploies"});
 }
 
 
 else if(rencontre==true && emploies ==false && evenements== true && formation ==false) {
 
   console.log("rencontre feat evenements")
+    return res.json({message:"rencontre feat evenements"});
 }
 
 else if(rencontre==true && emploies ==false && evenements== false && formation ==true) {
 
   console.log("rencontre feat formation")
+    return res.json({message:"rencontre feat formation"});
 }
 
 
 else if(rencontre==false && emploies ==true && evenements== true && formation ==false) {
 
   console.log("emploies feat evenements")
+    return res.json({message:"emploies feat evenements"});
 }
 
 else if(rencontre==false && emploies ==true && evenements== false && formation ==true) {
 
   console.log("emploies feat formation")
+    return res.json({message:"emploies feat formation"});
 }
 
 
 else if(rencontre==false && emploies ==false && evenements== true && formation ==true) {
 
   console.log("formation feat evenemnts")
+    return res.json({message:"formation feat evenemnts"});
 }
 
 else if(rencontre==false && emploies ==true && evenements== false && formation ==true) {
 
   console.log("formation feat emploies")
+    return res.json({message:"formation feat emploies"});
 }
 
 
 else if(rencontre==true && emploies ==true && evenements== true && formation ==false) {
 
   console.log("rencontre feat emploies feat evenements")
+    return res.json({message:"rencontre feat emploies feat evenements"});
 }
 
 else if(rencontre==true && emploies ==false && evenements== true && formation ==true) {
 
   console.log("rencontre feat evenements feat formation")
+    return res.json({message:"rencontre feat evenements feat formation"});
 }
 
 else if(rencontre==true && emploies ==true && evenements== false && formation ==true) {
 
   console.log("rencontre feat emploies feat formation")
+  return res.json({message:"rencontre feat emploies feat formation"});
 }
 
 else if(emploies==true && rencontre ==true && evenements== true && formation ==true) {
 
   console.log("read all")
+    return res.json({message:"read all"});
 }
 
 else if(emploies==false && rencontre ==false && evenements== false && formation ==false) {
 
   console.log("false all")
+    return res.json({message:"false all"});
 }
 
 else if(formation==true && emploies ==true && evenements== true && rencontre ==false) {
 
   console.log("formation feat emplois feat evenements")
+    return res.json({message:"formation feat emplois feat evenements"});
 }
 
 else if(emploies==true && formation ==true && evenements== true && rencontre ==false) {
 
   console.log("emploes feat formation evenements")
+    return res.json({message:"emploes feat formation evenements"});
 }
   return res.json(utilisaka);
 });
@@ -702,7 +992,7 @@ Utilisateurs.findOne({
   if (!utilisateur) {
     return res.notFound('Could not find user, sorry.');
   }
-utilisateur.emploiMatcher.push({idEmploiMatcher:idOffreEmploi});
+utilisateur.emploiMatcher.push(idOffreEmploi);
 utilisateur.save(function (err) {  });
   res.json(utilisateur);
   
@@ -751,7 +1041,7 @@ Utilisateurs.findOne({
   if (!utilisateur) {
     return res.notFound('Could not find Finn, sorry.');
   }
-utilisateur.emploiSauvegarder.push({idEmploiSauvegarder:idOffreEmploi});
+utilisateur.emploiSauvegarder.push(idOffreEmploi);
 utilisateur.save(function (err) {  });
   res.json(utilisateur);
   
@@ -801,7 +1091,7 @@ Utilisateurs.findOne({
   if (!utilisateur) {
     return res.notFound('Could not find Finn, sorry.');
   }
-utilisateur.formationSauvegarder.push({idFormationSauvegarder:idFormation});
+utilisateur.formationParticiper.push(idFormation);
 utilisateur.save(function (err) {  });
   res.json(utilisateur);
   
@@ -829,7 +1119,33 @@ utilisateur.save(function (err) {  });
   if (!utilisateur) {
     return res.notFound('Could not find user, sorry.');
   }
-utilisateur.formationIgnorer.push({idFormationIgnorer:idFormation});
+utilisateur.formationIgnorer.push(idFormation);
+utilisateur.save(function (err) {  });
+  res.json(utilisateur);
+  
+});
+  
+
+  },
+
+   ignorerRencontre: function(req, res) {
+
+
+    let
+
+      
+      idIgnorer= req.param('idIgnorer'),
+      idUtilisateur = req.param('idUtilisateur');
+      
+
+ Utilisateurs.findOne({id:idUtilisateur}).exec(function (err, utilisateur){
+  if (err) {
+    return res.serverError(err);
+  }
+  if (!utilisateur) {
+    return res.notFound('Could not find user, sorry.');
+  }
+utilisateur.utilisateurBloquer.push(idIgnorer);
 utilisateur.save(function (err) {  });
   res.json(utilisateur);
   
@@ -855,7 +1171,7 @@ utilisateur.save(function (err) {  });
   if (!utilisateur) {
     return res.notFound('Could not find user, sorry.');
   }
-utilisateur.emploiIgnorer.push({idEmploiIgnorer:idOffreEmploi});
+utilisateur.emploiIgnorer.push(idOffreEmploi);
 utilisateur.save(function (err) {  });
   res.json(utilisateur);
   
@@ -883,7 +1199,7 @@ utilisateur.save(function (err) {  });
   if (!utilisateur) {
     return res.notFound('Could not find user, sorry.');
   }
-utilisateur.evenementIgnorer.push({idEvenementsIgnorer:idEvenements});
+utilisateur.evenementIgnorer.push(idEvenements);
 utilisateur.save(function (err) {  });
   res.json(utilisateur);
   
@@ -924,7 +1240,7 @@ utilisateur.save(function (err) {  });
           return res.notFound("Could not find user, sorry.");
         }
 
-    utilisateur.evenementMatcher.push({idEvenementMatcher: id });
+    utilisateur.evenementMatcher.push(id);
           utilisateur.save(function(err) {});
           event.participant.push({
             idUtilisateurParticipant: idUtilisateurParticipant
@@ -975,7 +1291,7 @@ utilisateur.save(function (err) {  });
           return res.notFound("Could not find user, sorry.");
         }
 
-    utilisateur.evenementSauvegarder.push({idEvenementSauvegarder: id });
+    utilisateur.evenementSauvegarder.push(id);
 
           utilisateur.save(function(err) {});
           event.sauvegardeEvenement.push({
@@ -989,6 +1305,33 @@ utilisateur.save(function (err) {  });
           });
        }); 
     });
+  },
+
+
+   sauvegarderFormation: function(req, res) {
+
+
+    let
+
+      
+      idFormation= req.param('idFormation'),
+      idUtilisateur = req.param('idUtilisateur');
+      
+
+ Utilisateurs.findOne({id:idUtilisateur}).exec(function (err, utilisateur){
+  if (err) {
+    return res.serverError(err);
+  }
+  if (!utilisateur) {
+    return res.notFound('Could not find user, sorry.');
+  }
+utilisateur.formationSauvegarder.push(idFormation);
+utilisateur.save(function (err) {  });
+  res.json(utilisateur);
+  
+});
+  
+
   },
   Delete(req, res) {
     User.destroy({
@@ -1159,32 +1502,7 @@ Utilisateurs.create(
     
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  ).exec(function (err, finn){
+).exec(function (err, finn){
   if (err) { return res.serverError(err); }
 
   sails.log('Finn\'s id is:', finn.id);
@@ -1193,6 +1511,166 @@ Utilisateurs.create(
     
 
 },
+
+
+NewTags(req,res) {
+const nomTags = req.param("nomTags");
+
+
+
+Tags.create({nomTags:nomTags}).exec(function (err, finn){
+  if (err) { return res.serverError(err); }
+
+
+else {
+ io.emit('server-send', nomTags);
+res.json({message: "real time  :)"});
+
+}
+
+});
+
+},
+
+
+demandeRencontre: function(req, res) {
+
+
+    let
+
+      
+      idDemande= req.param('idDemande'),
+      idUtilisateur = req.param('idUtilisateur');
+      
+
+
+  
+ Utilisateurs.findOne({id:idDemande}).exec(function (err, usaka){
+  if (err) {
+    return res.serverError(err);
+  }
+  if (!usaka) {
+    return res.notFound('Could not find user, sorry.');
+  }
+
+   var verif = usaka.idUtilisateurIntersser.indexOf(idUtilisateur);
+   console.log(verif)
+        
+        if(verif > -1) {
+
+          res.json({message:"demande deja envoye"})
+} else {
+
+usaka.idUtilisateurIntersser.push(idUtilisateur);
+
+ io.emit('server-send', 'send');
+usaka.save(function (err) {  });
+  res.json(usaka);
+
+}
+  
+});
+  
+
+  
+
+
+  },
+  
+  accepteRencontre: function(req, res) {
+
+
+    let
+
+      
+      idAccepte= req.param('idAccepte'),
+      idUtilisateur = req.param('idUtilisateur');
+      
+
+ Utilisateurs.findOne({id:idUtilisateur}).exec(function (err, utilisateur){
+  if (err) {
+    return res.serverError(err);
+  }
+  if (!utilisateur) {
+    return res.notFound('Could not find user, sorry.');
+  }
+utilisateur.utilisateurMatcher.push(idAccepte);
+
+
+var index= utilisateur.idUtilisateurIntersser.indexOf(idAccepte);
+io.emit('server-accepte', 'send');
+console.log(index)
+
+if (index > -1) {
+    utilisateur.idUtilisateurIntersser.splice(index, 1);
+}
+
+utilisateur.save(function (err) {  });
+  res.json(utilisateur);
+  
+});
+  
+
+ Utilisateurs.findOne({id:idAccepte}).exec(function (err, usaka){
+  if (err) {
+    return res.serverError(err);
+  }
+  if (!usaka) {
+    return res.notFound('Could not find user, sorry.');
+  }
+usaka.utilisateurMatcher.push(idUtilisateur);
+usaka.save(function (err) {  });
+  console.log(usaka);
+  
+});
+
+  Messages.create({
+
+    idUser1:idAccepte,
+    idUser2:idUtilisateur,
+
+    Conversation: [{
+
+
+    }]
+
+
+
+
+  }).exec(function (err, finn){
+  if (err) { return res.serverError(err); }
+
+ 
+});
+
+  },
+
+ignorerRencontre: function(req, res) {
+
+
+    let
+
+      
+      idIgnorer= req.param('idIgnorer'),
+      idUtilisateur = req.param('idUtilisateur');
+      
+
+ Utilisateurs.findOne({id:idUtilisateur}).exec(function (err, utilisateur){
+  if (err) {
+    return res.serverError(err);
+  }
+  if (!utilisateur) {
+    return res.notFound('Could not find user, sorry.');
+  }
+utilisateur.utilisateurBloquer.push(idIgnorer);
+utilisateur.save(function (err) {  });
+  res.json(utilisateur);
+  
+});
+  
+
+  },
+
   LoginSprint(req, res) {
     res.header("Access-Control-Allow-Origin", "*");
     const e_mail = req.param("e_mail");

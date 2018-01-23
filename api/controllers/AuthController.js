@@ -27,6 +27,7 @@ module.exports = {
 						return res.json({
 							utilisateurs: utilisateurs.id,
 							pdp: utilisateurs.photoUtilisateur,
+							prenom:utilisateurs.prenomUtilisateur,
 							message:"OK",
 							token: jwToken.issue({ message: "good" })
 						}); 
@@ -59,6 +60,7 @@ module.exports = {
 					} 
 
 					user.code = "";
+					user.utilisateurBloquer.push(user.id);
 					user.save();
 					res.json({
 						user: user.id,

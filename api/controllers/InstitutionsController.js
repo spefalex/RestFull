@@ -14,6 +14,16 @@ var smtpTransport = mailer.createTransport("SMTP", {
   }
 });
 
+var express = require("express");
+var app = express();
+var server = require("http").Server(app);
+
+var server= app.listen(4444);
+var io = require('socket.io').listen(server);
+
+
+var moment = require("moment");
+
 module.exports = {
 
 
@@ -188,7 +198,6 @@ domaine = req.param('domaine'),
     lm = req.param("lm");
     dateLimite = req.param("dateLimite");
 
-
     Institutions.findOne({
       id: id
     }).exec(function(err, institution) {
@@ -201,8 +210,12 @@ domaine = req.param('domaine'),
       
       var name = institution.nom;
       var logo = institution.logo;
+      var localisation = institution.localisationInstitution;
+       var adresse = institution.localisationInstitution[0].adresse;
 
+       console.log(adresse)
      
+
 
       institution.save(function(err) {});
 
@@ -219,6 +232,7 @@ domaine = req.param('domaine'),
         tagsEmploi: tags,
         dateLimite: dateLimite,
         idInstitution: id,
+        adresse:localisation,
         postuler: [{
 
           idUtilisateurPostuler: idUtilisateurPostuler,
@@ -238,8 +252,10 @@ domaine = req.param('domaine'),
           return res.serverError(err);
         }
 
-        console.log("OK");
+        
       });
+
+      io.emit('server-send', "news");
       res.json({
         message: "Bien ajouter :) "
       });
@@ -524,22 +540,121 @@ results[i].save();
 
     let
 
-      OffreEmploie = [],
-      id_entreprise = req.param("id_entreprise");
+      
+      idOffre = req.param('idOffre');
 
 
-    Entreprise.findOne({
-      id_entreprise: id_entreprise
-    }).exec(function(err, entreprise) {
+    Emploies.findOne({
+      id: idOffre
+    }).exec(function(err, offres) {
       if (err) {
         return res.serverError(err);
       }
-      if (!entreprise) {
+      if (!offres) {
         return res.notFound("Could not find Finn, sorry.");
       }
 
       res.json({
-        message: entreprise.OffreEmploie[2].Postuler
+        offre:offres
+      });
+    });
+
+  },
+
+ findUtilisateurs: function(req, res) {
+
+    let
+
+      
+      idUser = req.param('idUser');
+
+
+    Utilisateurs.findOne({
+      id: idUser
+    }).exec(function(err, users) {
+      if (err) {
+        return res.serverError(err);
+      }
+      if (!users) {
+        return res.notFound("Could not find Finn, sorry.");
+      }
+
+      res.json({
+        users:users
+      });
+    });
+
+  },
+
+
+   findEvenements: function(req, res) {
+
+    let
+
+      
+      idEvenement = req.param('idEvenement');
+
+
+    Evenements.findOne({
+      id: idEvenement
+    }).exec(function(err, events) {
+      if (err) {
+        return res.serverError(err);
+      }
+      if (!events) {
+        return res.notFound("Could not find Finn, sorry.");
+      }
+
+      res.json({
+        events:events
+      });
+    });
+
+  },
+   findFormations: function(req, res) {
+
+    let
+
+      
+      idFormation = req.param('idFormation');
+
+
+    Formations.findOne({
+      id: idFormation
+    }).exec(function(err, formations) {
+      if (err) {
+        return res.serverError(err);
+      }
+      if (!formations) {
+        return res.notFound("Could not find Finn, sorry.");
+      }
+
+      res.json({
+        formations:formations
+      });
+    });
+
+  },
+findInfoInstitutions: function(req, res) {
+
+    let
+
+    
+      idInstitution = req.param('idInstitution');
+
+
+    Institutions.findOne({
+      id: idInstitution
+    }).exec(function(err, institution) {
+      if (err) {
+        return res.serverError(err);
+      }
+      if (!institution) {
+        return res.notFound("Could not find Finn, sorry.");
+      }
+
+      res.json({
+        institutions:institution
       });
     });
 
@@ -677,9 +792,81 @@ console.log(data);
     });
 
   },
+readAvis: function(req, res) {
+
+    let
+
+    
+      idInstitution = req.param('idInstitution');
+   
+    Institutions.findOne({
+      id: idInstitution
+    }).exec(function(err, institution) {
+      if (err) {
+        return res.serverError(err);
+      }
+      if (!institution) {
+        return res.notFound("Could not find Finn, sorry.");
+      }
+/*
+console.log(institution.avisInsitutions.length)
+
+var verif = institution.avisInsitutions.filter(function(value) {
+          return value.note == 3;
+        });
+
+console.log(verif.length) */
+      res.json({
+        institutions:institution.avisInsitutions
+      });
+    }); 
 
 
 
+  },
+readAvisInfo: function(req, res) {
+
+    let
+
+    
+      idInstitution = req.param('idInstitution');
+
+
+    Institutions.findOne({
+      id: idInstitution,
+
+    }).exec(function(err, institution) {
+      if (err) {
+        return res.serverError(err);
+      }
+      if (!institution) {
+        return res.notFound("Could not find Finn, sorry.");
+      }
+
+var x= [];
+var y= [];
+y.push(institution.avisInsitutions)
+ 
+
+ for(var i = 0 ; i<institution.avisInsitutions.length; i++ ) {
+   x.push(institution.avisInsitutions[i].idUtilisateur)
+ }
+// read info Utilisateurs 
+ Utilisateurs.find({
+     select: ['photoUtilisateur', 'nomUtilisateur']
+   })
+   .where({id: x})
+     .exec(function(err, user){
+   y.push(user)
+res.json({
+        institutions:y
+      });
+
+   });
+      
+    });
+
+  },
 
   // listé tous les offres des institutions en cours (instituions connécté)
 
@@ -703,6 +890,45 @@ console.log(data);
     });
 
   },
+
+
+AvisInstitutions(req,res) {
+const idUtilisateur = req.param("idUtilisateur");
+const pdp = req.param("pdp");
+const prenomUtilisateurs = req.param("prenomUtilisateurs");
+const idInstitution = req.param("idInstitution");
+const note = req.param("note");
+const avis = req.param("avis");
+const datePublicationAvis =  moment().format('MMMM Do YYYY, h:mm:ss a'); 
+
+  Institutions.findOne({
+      id: idInstitution
+    }).exec(function(err, entreprise) {
+      if (err) {
+        return res.serverError(err);
+      }
+      if (!entreprise) {
+        return res.notFound("Could not find Finn, sorry.");
+      }
+console.log(entreprise)
+
+entreprise.avisInsitutions.push({pdp,prenomUtilisateurs,idUtilisateur,note,avis,datePublicationAvis})
+ entreprise.save(function(err) {});
+io.on("connection", function(socket){
+
+
+console.log("log" +socket.id);
+socket.on("sendAvis", function(data){
+
+console.log("Appli mobile says:" +data);
+
+io.emit("send-avis",data);
+});
+});
+res.json(entreprise)
+    });
+
+},
 
   //methode setNull idOffreEmploie dans la collection institutions
   deleteOffre: function(req, res) {
@@ -769,7 +995,7 @@ console.log(data);
 
       tags = req.param("tags").replace(/\s/g, "").split(",");
       nomFiliere = req.param("nomFiliere"),
-
+      logo=req.param("logo");
       typeFormation = req.param("typeFormation"),
       id = req.param("id"); // identificateur institutions Obect Id
       lieuDeFormation = req.param("lieuDeFormation");
@@ -810,7 +1036,7 @@ console.log(data);
         diplomeDeLivre: diplomeDeLivre,
         dateDebutFormation: dateDebutFormation,
         dateFinFormation: dateFinFormation,
-        
+        logo:logo,
         lieuDeFormation: lieuDeFormation,
         ville:ville,
         domaineFormation: domaineFormation,

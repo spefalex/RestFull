@@ -31,6 +31,7 @@ tableName: "institutions",
     idOffreEmploie: {type:'integer'},
     idFormation:{type: 'integer'},
     idUtilisateurAbonnes:{ type :'integer'},
+    datePublicationAvis :{type:'date'},
 
       toJSON: function () {
       var obj = this.toObject();
