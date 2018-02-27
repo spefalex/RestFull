@@ -17,7 +17,7 @@ module.exports = {
  	idOffreEmploie:{type:'string'},
     idInstitution:{type:'string'},
    
-
+dateLimite : {type:'date'}	
   },
 
 

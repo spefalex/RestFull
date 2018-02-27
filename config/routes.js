@@ -58,6 +58,7 @@ module.exports.routes = {
 'POST /Sauvegarder/Evenements': 'UtilisateursController.sauvegardeEvenement',
 'POST /Participe/Formation': 'UtilisateursController.participeFormation',
 'POST /Ignorer/Offre': 'UtilisateursController.ignorerOffre',
+'POST /Envoye/Message' : 'UtilisateursController.insertMessage',
 'POST /Ignorer/Formation': 'UtilisateursController.ignorerFormation',
 'POST /Ignorer/Evenement': 'UtilisateursController.ignorerEvenement',
 'POST /demande/rencontre': 'UtilisateursController.demandeRencontre',
@@ -93,7 +94,10 @@ module.exports.routes = {
  'GET /read/Avis': 'InstitutionsController.readAvis',
  'GET /read/Avis/Info': 'InstitutionsController.readAvisInfo',
 
-'GET /boucle': 'UtilisateursController.piho',
+  'POST /read/Convsa': 'UtilisateursController.findConversation',
+
+'GET /photo': 'UtilisateursController.findPhoto',
+'GET /photo2': 'UtilisateursController.findPhoto2',
 'POST /pet': 'PetController.insertPet',
 'POST /insert': 'PetController.insertUser',
 //'POST /readpet': 'PetController.FindPet',

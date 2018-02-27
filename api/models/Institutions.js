@@ -16,7 +16,7 @@ tableName: "institutions",
     
     adresse: {type: 'string'},
     ville:{type: 'string'},
-  	dateCreation:{type: 'string'},
+  	dateCreation:{type: 'date'},
     nombreSalarie: {type: 'string'},
     domaine:{type: 'string'},
     logo:{type: 'string'},
@@ -31,7 +31,7 @@ tableName: "institutions",
     idOffreEmploie: {type:'integer'},
     idFormation:{type: 'integer'},
     idUtilisateurAbonnes:{ type :'integer'},
-    datePublicationAvis :{type:'date'},
+    datePublicationAvis :{type:'string'},
 
       toJSON: function () {
       var obj = this.toObject();

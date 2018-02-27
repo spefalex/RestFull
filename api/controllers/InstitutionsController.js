@@ -192,7 +192,7 @@ module.exports = {
     id = req.param("id"); // identificateur institutions Obect Id
     profilsRequis = req.param("profilsRequis"),
     idUtilisateurSauvegarder = req.param("idUtilisateurSauvegarder"),
-domaine = req.param('domaine'),
+    domaine = req.param('domaine'),
     idUtilisateurPostuler = req.param("idUtilisateurPostuler");
     cv = req.param("cv");
     lm = req.param("lm");
@@ -900,7 +900,7 @@ const idInstitution = req.param("idInstitution");
 const note = req.param("note");
 const avis = req.param("avis");
 const datePublicationAvis =  moment().format('MMMM Do YYYY, h:mm:ss a'); 
-
+// console.log(datePublicationAvis)
   Institutions.findOne({
       id: idInstitution
     }).exec(function(err, entreprise) {
@@ -913,7 +913,7 @@ const datePublicationAvis =  moment().format('MMMM Do YYYY, h:mm:ss a');
 console.log(entreprise)
 
 entreprise.avisInsitutions.push({pdp,prenomUtilisateurs,idUtilisateur,note,avis,datePublicationAvis})
- entreprise.save(function(err) {});
+ entreprise.save()
 io.on("connection", function(socket){
 
 

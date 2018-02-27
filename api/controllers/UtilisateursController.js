@@ -5,7 +5,7 @@ var path = require('path');
 var express = require("express");
 var app = express();
 var server = require("http").Server(app);
-
+var moment = require("moment");
 var server= app.listen(3333);
 var io = require('socket.io').listen(server);
 
@@ -253,7 +253,78 @@ res.json({ message: 'OK', token: jwToken.issue({id: _utilisateur.id})});
     });
   },
 
+ findConversationol(req, res) {
 
+  let
+
+      idUser2 = req.param('idUser2')
+      idUser1= req.param('idUser1');
+     Messages.find({
+
+"idUser1":"5a420bdac2ba920b19d5f75b","idUser2":"5a44894ec4cb2bd81bc3547a"}).exec((err, message) => {
+      if (err) {
+        res.send(400);
+      } else {0
+        res.header("Access-Control-Allow-Origin", "*");
+        res.json({
+          message:message.id
+        }
+        );
+      }
+    });
+  },
+findConversation: function(req, res) {
+
+    let
+
+    idUser2 = req.param('idUser2')
+    idUser1=  req.param('idUser1');
+    
+   console.log(idUser1)
+   console.log(idUser2)
+    Messages.find({
+     idUser1: idUser1, idUser2:idUser2,
+     
+   })
+   .exec(function(err, institution) {
+      if (err) {
+        return res.serverError(err);
+      }
+      if (!institution) {
+        return res.notFound("Could not find Finn, sorry.");
+      }
+
+
+if(institution.length == 0 ) {
+
+   console.log(institution.length)
+   Messages.find({
+idUser1: idUser2, idUser2: idUser1
+    
+
+   } ).exec((err, message) => {
+      if (err) {
+        res.send(400);
+      } else {
+        res.header("Access-Control-Allow-Origin", "*");
+        res.json(
+         message
+        );
+      }
+    });
+
+
+
+} else  {
+      res.json(
+        institution
+      );
+      }
+    }); 
+
+
+
+  },
   findUSER(req, res) {
     Utilisateurs.find({select:['Filtre.rencontre']}).exec((err, user) => {
       if (err) {
@@ -267,10 +338,46 @@ res.json({ message: 'OK', token: jwToken.issue({id: _utilisateur.id})});
     });
   },
 
+   findPhoto(req, res) {
+    let
+
+    
+    idUser1=  req.param('idUser1');
+    Utilisateurs.find({ id:idUser1}).exec((err, user) => {
+      if (err) {
+        res.send(400);
+      } else {
+        res.header("Access-Control-Allow-Origin", "*");
+        res.json({
+         photo1:user[0].photoUtilisateur
+        }
+        );
+      }
+    });
+  },
+
+   findPhoto2(req, res) {
+    let
+
+    idUser2 = req.param('idUser2')
+   
+    Utilisateurs.find({id:idUser2}).exec((err, user) => {
+      if (err) {
+        res.send(400);
+      } else {
+        res.header("Access-Control-Allow-Origin", "*");
+        res.json({
+        photo2:user[0].photoUtilisateur
+        }
+        );
+      }
+    });
+  },
+
  lireEmploiMatcher(req, res) {
 
    const id = req.param("idUtilisateurs");
-    Emploies.find({"postuler.idUtilisateursPostuler":id}).exec((err, emploie) => {
+    Emploies.find({"postuler.idUtilisateursPostuler":id, sort: 'createdAt DESC'}).exec((err, emploie) => {
       if (err) {
         res.send(400);
       } else {
@@ -415,7 +522,7 @@ res.json(uploadedFiles[0].fd);
    lireEmploiSauvegarder(req, res) {
 
    const id = req.param("idUtilisateurs");
-    Emploies.find({"sauvegardeEmploi.idUtilisateurSauvegarder":id}).exec((err, emploie) => {
+    Emploies.find({"sauvegardeEmploi.idUtilisateurSauvegarder":id, sort: 'createdAt DESC'}).exec((err, emploie) => {
       if (err) {
         res.send(400);
       } else {
@@ -490,11 +597,10 @@ res.json(uploadedFiles[0].fd);
   },
 
  FiltreEmploie(req, res) {
+    
     const id = req.param("id");
-  const typeContrat = req.param('typeContrat').replace(/\s/g, "").split(",");
-
-   
-   const centreInteret = req.param("centreInteret").replace(/\s/g, "").split(",");
+    const typeContrat = req.param('typeContrat').replace(/\s/g, "").split(",");
+    const centreInteret = req.param("centreInteret").replace(/\s/g, "").split(",");
   
  Utilisateurs.findOne({
       id
@@ -582,7 +688,8 @@ AcceuilsUtilisateur(req, res) {
 
     Emploies.find({
           tagsEmploi: tags,
-          id:{'!':ignorerVrai}
+          id:{'!':ignorerVrai}, 
+          sort: 'createdAt DESC'
         }).exec((err, emploies) => {
 
 if(emploies.length == 0) {
@@ -609,7 +716,7 @@ AcceuilsEvenements(req, res) {
 
 
     Utilisateurs.findOne({
-      id
+      id:id
     }).exec((err, utilisateur) => {
       if (err) {
         return res.serverError(err);
@@ -1050,6 +1157,42 @@ utilisateur.save(function (err) {  });
 
   },
 
+ insertMessage: function(req, res) {
+
+
+    let
+
+    idConvsa = req.param('idConvsa'),
+    text= req.param('text'),
+    idUtilisateur = req.param('idUtilisateur');
+    
+
+
+var obj = {};
+obj[idUtilisateur] = text;
+
+      Messages.findOne({
+      id: idConvsa,
+     
+    }).exec(function(err, message) {
+      if (err) {
+        return res.serverError(err);
+      }
+      if (!message) {
+        return res.notFound('Could not find emploies, sorry.');
+      }
+     
+     
+
+ io.emit('server-message', "news");
+     message.Conversation.push(obj);
+     message.save();
+     
+res.json(message)
+
+    });
+
+  },
 
 
    participeFormation: function(req, res) {
